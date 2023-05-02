@@ -1,6 +1,8 @@
 const resultado = document.querySelector("#resultado");
 const formulario = document.querySelector("#formulario");
 let registroPorPagina = 40;
+let totalPaginas;
+let iterador;
 
 window.onload = () => {
   formulario.addEventListener("submit", validarFormulario);
@@ -58,15 +60,22 @@ function buscarImagenes(termino) {
   fetch(url)
     .then((response) => response.json())
     .then((result) => {
+      totalPaginas = calcularPaginas(result.totalHits);
       mostrarImagenes(result.hits);
-      const totalPaginas = calcularPaginas(result.totalHits);
     });
 }
+
+// generador que registrara la cantidad de elementos segun el total de paginas
 
 function calcularPaginas(total) {
   return parseInt(Math.ceil(total / registroPorPagina));
 }
 
+function* crearPaginador(total) {
+  for (let i = 1; i <= total; i++) {
+    yield i;
+  }
+}
 function mostrarImagenes(imagenes) {
   // limpiar el html de resultados previos
   while (resultado.firstChild) {
@@ -77,20 +86,22 @@ function mostrarImagenes(imagenes) {
   imagenes.forEach((imagen) => {
     const { previewURL, likes, views, largeImageURL } = imagen;
     resultado.innerHTML += `
-<div class="w-1/2 md:w-1/3 lg:w-1/4 p-3 mb-4">
-  <div class="bg-white">
-    <img src=${previewURL} alt="imagen previa" class="w-full">    </img>
-    <div class="p-4">
-      <p class="font-bold">${likes}<span class="font-light"> Me gusta</span></p>
-      <p class="font-bold">${views}<span class="font-light"> Veces vista</span></p>
-      <a href=${largeImageURL} class="block w-full bg-blue-800 hover:bg-blue-500 text-white uppercase font-bold text-center rounded mt-5 p-1" target="_blank" rel="noopener noreferrer"
-      >
-        Ver Imagen
-      </a>
-    </div>
+      <div class="w-1/2 md:w-1/3 lg:w-1/4 p-3 mb-4">
+        <div class="bg-white">
+          <img src=${previewURL} alt="imagen previa" class="w-full">    </img>
+          <div class="p-4">
+            <p class="font-bold">${likes}<span class="font-light"> Me gusta</span></p>
+            <p class="font-bold">${views}<span class="font-light"> Veces vista</span></p>
+            <a href=${largeImageURL} class="block w-full bg-blue-800 hover:bg-blue-500 text-white uppercase font-bold text-center rounded mt-5 p-1" target="_blank" rel="noopener noreferrer"
+            >
+              Ver Imagen
+            </a>
+          </div>
 
-  </div>  
-</div>
+        </div>  
+      </div>
     `;
   });
+
+  iterador = crearPaginador(totalPaginas);
 }
